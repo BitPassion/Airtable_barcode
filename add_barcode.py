@@ -30,27 +30,27 @@ def generate_random_ean13():
     my_code.save("barcode_img", options={"write_text": False})
     return random_number
 
-def create_barcode_page(output_filename, barcode_value):
-    # Create a new PDF with Reportlab that contains the barcode
-    packet = BytesIO()
-    barcode = createBarcodeDrawing('EAN13', value=barcode_value, barHeight=40*mm, humanReadable=False)
-    c = canvas.Canvas(packet, pagesize=letter)
-    barcode_width, barcode_height = barcode.width, barcode.height
-    x_position = (c._pagesize[0] - barcode_width) // 2
-    y_position = (c._pagesize[1] - barcode_height) // 2
-    renderPDF.draw(barcode, c, x_position, y_position)
-    c.save()
+# def create_barcode_page(output_filename, barcode_value):
+#     # Create a new PDF with Reportlab that contains the barcode
+#     packet = BytesIO()
+#     barcode = createBarcodeDrawing('EAN13', value=barcode_value, barHeight=40*mm, humanReadable=False)
+#     c = canvas.Canvas(packet, pagesize=letter)
+#     barcode_width, barcode_height = barcode.width, barcode.height
+#     x_position = (c._pagesize[0] - barcode_width) // 2
+#     y_position = (c._pagesize[1] - barcode_height) // 2
+#     renderPDF.draw(barcode, c, x_position, y_position)
+#     c.save()
     
-    packet.seek(0)
-    new_pdf = PdfReader(packet)
-    return new_pdf
+#     packet.seek(0)
+#     new_pdf = PdfReader(packet)
+#     return new_pdf
 
 def create_image_page(image_path):
     packet = BytesIO()
     c = canvas.Canvas(packet, pagesize=letter)  # assuming landscape, modify as needed
 
     # Add image to canvas. Modify x, y, width, and height as needed.
-    c.drawImage(image_path, 100, 100)
+    c.drawImage(image_path, 510, 730, 100, 50)
 
     c.showPage()
     c.save()
@@ -67,8 +67,8 @@ def add_barcode_to_pdf(input_filename, output_filename, barcode_value):
         output.add_page(page)
     
     # Create a new page with barcode
-    barcode_page = create_barcode_page(output_filename, barcode_value)
-    output.add_page(barcode_page.pages[0])
+    # barcode_page = create_barcode_page(output_filename, barcode_value)
+    # output.add_page(barcode_page.pages[0])
 
     # Add image page
     image_page = create_image_page("barcode_img.png")
