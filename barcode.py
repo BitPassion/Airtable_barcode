@@ -1,3 +1,5 @@
+#generate barcode, upload to airtable.
+
 import random
 from barcode import EAN13
 from barcode.writer import ImageWriter

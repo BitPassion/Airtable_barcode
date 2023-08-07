@@ -1,3 +1,5 @@
+#Extract data from pdf file.
+
 from PyPDF2 import PdfReader
 
 infile = "input.pdf"

@@ -1,3 +1,5 @@
+#Extract data from pdf file not good.
+
 from PyPDF2 import PdfReader
 from pprint import pprint
 pdf_file_name = 'input.pdf'

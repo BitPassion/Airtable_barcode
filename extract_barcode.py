@@ -1,3 +1,5 @@
+#from an image, extract barcode.
+
 from pyzbar.pyzbar import decode
 import cv2
 
