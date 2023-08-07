@@ -11,6 +11,6 @@ with open('result.csv','w') as resultcsv:
 
 textfields = pdf_reader.get_form_text_fields()
 
-dest = pdf_reader.named_destinations()
+dest = pdf_reader.named_destinations
 
 print(dest)
