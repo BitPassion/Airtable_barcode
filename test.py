@@ -2,7 +2,7 @@
 
 from PyPDF2 import PdfReader
 from pprint import pprint
-pdf_file_name = 'input.pdf'
+pdf_file_name = 'output.pdf'
 
 f = PdfReader(pdf_file_name)
 fields = f.get_fields()

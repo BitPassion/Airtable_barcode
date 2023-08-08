@@ -50,7 +50,7 @@ def create_image_page(image_path):
     c = canvas.Canvas(packet, pagesize=letter)  # assuming landscape, modify as needed
 
     # Add image to canvas. Modify x, y, width, and height as needed.
-    c.drawImage(image_path, 510, 730, 100, 50)
+    c.drawImage(image_path, 480, 50, 120, 50)
 
     c.showPage()
     c.save()
@@ -63,16 +63,17 @@ def add_barcode_to_pdf(input_filename, output_filename, barcode_value):
     output = PdfWriter()
     
     # Add original PDF pages
-    for page in original.pages:
-        output.add_page(page)
+    output.add_page(original.pages[0])
     
+    last_page = original.pages[1]
     # Create a new page with barcode
     # barcode_page = create_barcode_page(output_filename, barcode_value)
     # output.add_page(barcode_page.pages[0])
 
     # Add image page
     image_page = create_image_page("barcode_img.png")
-    output.add_page(image_page.pages[0])
+    last_page.merge_page(image_page.pages[0])
+    output.add_page(last_page)
     
     # Write the output to a new file
     with open(output_filename, "wb") as output_pdf_file:

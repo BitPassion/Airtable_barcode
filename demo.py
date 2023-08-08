@@ -2,7 +2,7 @@
 
 from PyPDF2 import PdfReader
 
-infile = "input.pdf"
+infile = "output.pdf"
 
 pdf_reader = PdfReader(open(infile, "rb"))
 
