@@ -1,5 +1,9 @@
 #generate barcode, upload to airtable.
-
+import google.auth
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaFileUpload
 import random
 from barcode import EAN13
 from barcode.writer import ImageWriter
@@ -27,7 +31,7 @@ def generate_random_ean13():
     my_code = EAN13(random_number, writer=writer)
     
     # Our barcode is ready. Let's save it.
-    my_code.save("barcode_img", options={"write_text": False})
+    my_code.save("code_img", options={"write_text": False})
     return random_number
 
 # def create_barcode_page(output_filename, barcode_value):
@@ -71,7 +75,7 @@ def add_barcode_to_pdf(input_filename, output_filename, barcode_value):
     # output.add_page(barcode_page.pages[0])
 
     # Add image page
-    image_page = create_image_page("barcode_img.png")
+    image_page = create_image_page("code_img.png")
     last_page.merge_page(image_page.pages[0])
     output.add_page(last_page)
     
@@ -79,7 +83,7 @@ def add_barcode_to_pdf(input_filename, output_filename, barcode_value):
     with open(output_filename, "wb") as output_pdf_file:
         output.write(output_pdf_file)
 
-def add_to_airtable(api_key, base_id, table_name, barcode_value):
+def add_to_airtable(api_key, base_id, table_name, barcode_value, pdf_link, img_link):
     url = f"https://api.airtable.com/v0/{base_id}/{table_name}"
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -89,7 +93,12 @@ def add_to_airtable(api_key, base_id, table_name, barcode_value):
         "fields": {
             "Barcode Image": [
                 {
-                    "url": "D:/Parse_pdf_barcode/barcode_img.png"
+                    "url": img_link
+                }
+            ],
+            "Doctor Form (incomplete)": [
+                {
+                    "url": pdf_link
                 }
             ],
             "Barcode": {
@@ -105,6 +114,26 @@ def add_to_airtable(api_key, base_id, table_name, barcode_value):
     else:
         print(f"Failed to add to Airtable. Status code: {response.status_code}. Response: {response.text}")
 
+def upload_file_to_folder(filename, filepath, mimetype, folder_id):
+    file_metadata = {
+        'name': filename,
+        'parents': [folder_id]
+    }
+    media = MediaFileUpload(filepath, mimetype=mimetype)
+    file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    print(f"File ID: {file.get('id')}")
+
+    # Make the file shareable
+    permission = {
+        'type': 'anyone',
+        'role': 'reader'
+    }
+    service.permissions().create(fileId=file.get('id'), body=permission, fields='id').execute()
+
+    # Get the shareable link
+    link = f"https://drive.google.com/file/d/{file.get('id')}/view?usp=sharing"
+    return link
+
 if __name__ == "__main__":
     directory = os.path.dirname(os.path.abspath(__file__))
     input_pdf = os.path.join(directory, "input.pdf")
@@ -114,10 +143,30 @@ if __name__ == "__main__":
     add_barcode_to_pdf(input_pdf, output_pdf, barcode_value)
     print(f"Barcode {barcode_value} added and saved as output.pdf")
 
+    # Load the Service Account's credentials
+    SERVICE_ACCOUNT_FILE = 'credential.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+
+    credentials = Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+    # Build the Google Drive API client
+    service = build('drive', 'v3', credentials=credentials)
+
+    # Example: Upload a file
+    FOLDER_ID = '1_wjHSlUFazrJh0nWOtPVHTebM7VpaBGg'
+    pdf_link = upload_file_to_folder(barcode_value + '.pdf', 'D:\Barcode_airtable\Airtable_barcode\output.pdf', 'application/pdf', FOLDER_ID)
+    pdf_link = pdf_link[:-7] + 'drive_link'
+    print(f"Shareable link: {pdf_link}")
+    img_link = upload_file_to_folder(barcode_value + '.png', 'D:\Barcode_airtable\Airtable_barcode\code_img.png', 'image/png', FOLDER_ID)
+    print(f"Shareable link: {img_link}")
+
     # Airtable credentials
-    API_KEY = "patsKa7ue00yT7O5z.ab8ac81f77631852c08df2c18fec20e0b8785126f563f23a6b47e10e70082c58"
+    API_KEY = "patsKa7ue00yT7O5z.8c6a89bca50e9a991b71477388b597d968ef4b2d79edbd8edf3e18a1d8bfdb7f"
     BASE_ID = "app9TEsn6f0IFjNup"
     TABLE_NAME = "tblUha0m2h1hGDF3A"
 
     # Add barcode to Airtable
-    add_to_airtable(API_KEY, BASE_ID, TABLE_NAME, barcode_value)
+    add_to_airtable(API_KEY, BASE_ID, TABLE_NAME, barcode_value, pdf_link, img_link)
+
+
